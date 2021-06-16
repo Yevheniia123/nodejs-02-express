@@ -2,8 +2,12 @@ const Contacts = require("../repositories/contacts");
 
 const listContacts = async (req, res, next) => {
   try {
-    const results = await Contacts.listContacts();
-    return res.json({ status: "succes", code: 200, data: { results } });
+    const userId = req.user.id;
+    const { docs: results, ...rest } = await Contacts.listContacts(
+      userId,
+      req.query
+    );
+    return res.json({ status: "succes", code: 200, data: { results, rest } });
   } catch (error) {
     next(error);
   }
@@ -11,7 +15,8 @@ const listContacts = async (req, res, next) => {
 
 const getContactById = async (req, res, next) => {
   try {
-    const result = await Contacts.getContactById(req.params.contactId);
+    const userId = req.user.id;
+    const result = await Contacts.getContactById(userId, req.params.contactId);
     if (result) {
       return res.json({ status: "succes", code: 201, data: { result } });
     }
@@ -23,7 +28,8 @@ const getContactById = async (req, res, next) => {
 
 const addContact = async (req, res, next) => {
   try {
-    const result = await Contacts.addContact(req.body);
+    const userId = req.user.id;
+    const result = await Contacts.addContact(userId, req.body);
     return res
       .status(201)
       .json({ status: "succes", code: 201, data: { result } });
@@ -37,7 +43,8 @@ const addContact = async (req, res, next) => {
 
 const removeContact = async (req, res, next) => {
   try {
-    const result = await Contacts.removeContact(req.params.contactId);
+    const userId = req.user.id;
+    const result = await Contacts.removeContact(userId, req.params.contactId);
     if (result) {
       return res.json({ status: "succes", code: 201, data: { result } });
     }
@@ -49,7 +56,12 @@ const removeContact = async (req, res, next) => {
 
 const updateContact = async (req, res, next) => {
   try {
-    const result = await Contacts.updateContact(req.params.contactId, req.body);
+    const userId = req.user.id;
+    const result = await Contacts.updateContact(
+      userId,
+      req.params.contactId,
+      req.body
+    );
     if (result) {
       return res.json({ status: "succes", code: 201, data: { result } });
     }

@@ -6,12 +6,11 @@ const db = mongoose.connect(uriDb, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
-  useFindAndModify: false,
   poolSize: 5,
 });
 
 mongoose.connection.on("connected", () => {
-  console.log(`Connection open ${uriDb}`);
+  console.log("Database connection successful");
 });
 
 mongoose.connection.on("error", (e) => {
