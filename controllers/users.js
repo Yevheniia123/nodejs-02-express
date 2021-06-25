@@ -1,8 +1,11 @@
 const Users = require("../repositories/users");
 const { HttpCode } = require("../helpers/constans");
-// const User = require("../model/user");
 const jwt = require("jsonwebtoken");
+const fs = require("fs/promises");
+const path = require("path");
 require("dotenv").config();
+const UploadAvatarService = require("../services/local-upload");
+
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const signup = async (req, res, next) => {
@@ -15,11 +18,11 @@ const signup = async (req, res, next) => {
         message: "This email is already used",
       });
     }
-    const { id, email, subscription } = await Users.create(req.body);
+    const { id, email, subscription, avatarURL } = await Users.create(req.body);
     return res.status(HttpCode.CREATED).json({
       status: "succes",
       code: HttpCode.CREATED,
-      data: { id, email, subscription },
+      data: { id, email, subscription, avatarURL },
     });
   } catch (error) {
     next(error);
@@ -56,5 +59,20 @@ const logout = async (req, res, next) => {
     next(error);
   }
 };
-
-module.exports = { signup, login, logout };
+const avatars = async (req, res, next) => {
+  try {
+    const id = req.user.id;
+    const uploads = new UploadAvatarService(process.env.AVATAR_OF_USERS);
+    const avatarUrl = await uploads.saveAvatar({ idUser: id, file: req.file });
+    try {
+      await fs.unlink(path.join(proces.env.AVATAR_OF_USERS, req.user.avatar));
+    } catch (e) {
+      console.log(e.message);
+    }
+    await Users.updateAvatar(id, avatarUrl);
+    res.json({ status: "succes", code: 200, data: { avatarUrl } });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { signup, login, logout, avatars };
